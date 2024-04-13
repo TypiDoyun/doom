@@ -262,7 +262,7 @@ class Vector {
 class Camera {
     public location: Vector = Vector.ZERO;
     private rotation: Vector = Vector.ZERO;
-    public fov: number = 150;
+    public fov: number = 100;
 
     public getRotation() {
         return this.rotation.clone;
@@ -279,7 +279,7 @@ class Camera {
         
     }
     public getDirectionLength(plane: number = 1) {
-        return plane / Math.tan(this.fov * Math.PI / 360);
+        return plane / Math.tan(this.fov * Math.PI / 360) / 2;
     }
     public getDirection() {
         const length = this.getDirectionLength();
@@ -309,44 +309,68 @@ class Camera {
         shape.rotateX(-this.rotation.x, this.location);
 
         beginShape();
-
+        
+        const length = this.getDirectionLength(windowWidth);
         const points: [ number, number ][] = [];
         const luminance = Math.max(0, shape.getSurface().dot(this.location.fromOrigin(shape.location).normalized));
 
-        if (luminance > 0) {
-            fill(color(255, 0, 0))
-        }
-        else {
-            fill("#000000");
-        }
+        // if (luminance > 0) {
+        //     fill(color(255, 0, 0))
+        // }
+        // else {
+        //     fill("#000000");
+        // }
         // fill(color(255 * luminance, 255 * luminance, 255 * luminance))
+        const vertices = shape.getVertices();
+        for (let i = 0; i < vertices.length - 1; i++) {
+            const current = shape.location.clone.add(vertices[i]).fromOrigin(this.location);
+            const next = shape.location.clone.add(vertices[i + 1]).fromOrigin(this.location);
 
-        let counter = 0;
-        
+            const cameraLocation = new Vector(0, 0, 0)
+            const fovLines = [
+                new Vector(-Math.sin(this.fov * Math.PI / 360), Math.cos(this.fov * Math.PI / 360), 0),
+                new Vector(Math.sin(this.fov * Math.PI / 360), Math.cos(this.fov * Math.PI / 360), 0),
+                new Vector( -windowHeight / 2, length, 0 ),
+                new Vector( windowHeight / 2, length, 0 ),
+            ]
+            const currentLocation = new Vector(current.x, current.z, 0);
+            const nextLocation = new Vector(next.x, next.z, 0);
+            const currentLocationY = new Vector(current.y, current.z, 0);
+            const nextLocationY = new Vector(next.y, next.z, 0);
+
+            const left = ccw(cameraLocation, fovLines[0], currentLocation) * ccw(cameraLocation, fovLines[0], nextLocation) <= 0;
+            const right = ccw(cameraLocation, fovLines[1], currentLocation) * ccw(cameraLocation, fovLines[1], nextLocation) <= 0;
+            const top = ccw(cameraLocation, fovLines[2], currentLocationY) * ccw(cameraLocation, fovLines[2], nextLocationY) <= 0;
+            const bottom = ccw(cameraLocation, fovLines[3], currentLocationY) * ccw(cameraLocation, fovLines[3], nextLocationY) <= 0;
+
+            if (left) console.log("왼쪽 화면에 걸림");
+            if (right) console.log("오른쪽 화면에 걸림");
+            if (top) console.log("화면 상단에 걸림");
+            if (bottom) console.log("화면 하단에 걸림");
+            
+        }
+        // console.log("\n\n")
+
         for (const point of shape.getVertices()) {
-            const length = this.getDirectionLength(windowWidth);
             const location = shape.location.clone.add(point).fromOrigin(this.location);
-            if (Math.sign(location.z) === -1) counter++;
             if (location.z === 0) return;
             const ooz = 1 / location.z;
             const pointX = windowWidth / 2 + (location.x * length) * ooz;
             const pointY = windowHeight / 2 + (location.y * length) * ooz;
-
             // console.log(location.x.toFixed(2), location.y.toFixed(2), location.z.toFixed(2));
+            // console.log(pointX, pointY);
             
             points.push([ pointX, pointY ]);
         }
 
-        if (shape.getVertices().length === counter) return;
-
-        // console.log("\n\n")
-
-        // if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight)) return;
-
+        
+        if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight)) return;
+        
         for (const point of points) {
             vertex(point[0], point[1]);
         }
-
+        
+        // console.log("drawing\n\n")
         endShape(CLOSE);
     }
 }
@@ -443,6 +467,25 @@ enum KeyCode {
     ARROW_BOTTOM,
 }
 
+const ccw = (a: Vector, b: Vector, c: Vector): number => {
+    return Math.sign((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y));
+}
+
+const isCrossing = (a: Vector, b: Vector, c: Vector, d: Vector): boolean => {
+    const state1 = ccw(a, c, d) * ccw(b, c, d);
+    const state2 = ccw(c, a, b) * ccw(d, a, b);
+
+    if (state1 === 0 && state2 === 0) {
+        const aMin = a.min(b);
+        const bMax = a.max(b);
+        const cMin = c.min(d);
+        const dMax = c.max(d);
+
+        return (bMax.lengthSquared >= cMin.lengthSquared && dMax.lengthSquared >= aMin.lengthSquared)
+    }
+    else return (state1 <= 0 && state2 <= 0);
+}
+
 const framePerSecond = 60;
 const rectShape1 = new Rect();
 const rectShape2 = new Rect();
@@ -494,7 +537,7 @@ function draw() {
     cam.setRotationX(-180 * mouseY / windowHeight + 90);
 
     cam.render(rectShape1);
-    // cam.render(rectShape2);
+    cam.render(rectShape2);
 }
 
 function keyPressed() {
