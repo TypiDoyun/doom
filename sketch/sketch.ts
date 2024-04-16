@@ -259,11 +259,12 @@ class Vector {
         yield this.z;
     }
 }
+
 class Camera {
     public location: Vector = Vector.ZERO;
     private rotation: Vector = Vector.ZERO;
-    public fov: number = 100;
-
+    public fov: number = 120;
+    
     public getRotation() {
         return this.rotation.clone;
     }
@@ -322,6 +323,9 @@ class Camera {
         // }
         // fill(color(255 * luminance, 255 * luminance, 255 * luminance))
         const vertices = shape.getVertices();
+
+        let isNotValid = true;
+
         for (let i = 0; i < vertices.length - 1; i++) {
             const current = shape.location.clone.add(vertices[i]).fromOrigin(this.location);
             const next = shape.location.clone.add(vertices[i + 1]).fromOrigin(this.location);
@@ -342,6 +346,8 @@ class Camera {
             const right = ccw(cameraLocation, fovLines[1], currentLocation) * ccw(cameraLocation, fovLines[1], nextLocation) <= 0;
             const top = ccw(cameraLocation, fovLines[2], currentLocationY) * ccw(cameraLocation, fovLines[2], nextLocationY) <= 0;
             const bottom = ccw(cameraLocation, fovLines[3], currentLocationY) * ccw(cameraLocation, fovLines[3], nextLocationY) <= 0;
+            
+
 
             if (left) console.log("왼쪽 화면에 걸림");
             if (right) console.log("오른쪽 화면에 걸림");
@@ -354,7 +360,8 @@ class Camera {
         for (const point of shape.getVertices()) {
             const location = shape.location.clone.add(point).fromOrigin(this.location);
             if (location.z === 0) return;
-            const ooz = 1 / location.z;
+            if (location.z > 0) isNotValid = false;
+            const ooz = 1 / Math.abs(location.z);
             const pointX = windowWidth / 2 + (location.x * length) * ooz;
             const pointY = windowHeight / 2 + (location.y * length) * ooz;
             // console.log(location.x.toFixed(2), location.y.toFixed(2), location.z.toFixed(2));
@@ -365,7 +372,7 @@ class Camera {
 
         
         if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight)) return;
-        
+        if (isNotValid) return;
         for (const point of points) {
             vertex(point[0], point[1]);
         }

@@ -191,11 +191,15 @@ class Vector {
     }
 }
 Vector.EPSILON = 1000000;
+var a;
+(function (a) {
+    a[a["A"] = 0] = "A";
+})(a || (a = {}));
 class Camera {
     constructor() {
         this.location = Vector.ZERO;
         this.rotation = Vector.ZERO;
-        this.fov = 100;
+        this.fov = 90;
     }
     getRotation() {
         return this.rotation.clone;
@@ -230,6 +234,7 @@ class Camera {
         const points = [];
         const luminance = Math.max(0, shape.getSurface().dot(this.location.fromOrigin(shape.location).normalized));
         const vertices = shape.getVertices();
+        let isNotValid = true;
         for (let i = 0; i < vertices.length - 1; i++) {
             const current = shape.location.clone.add(vertices[i]).fromOrigin(this.location);
             const next = shape.location.clone.add(vertices[i + 1]).fromOrigin(this.location);
@@ -261,12 +266,16 @@ class Camera {
             const location = shape.location.clone.add(point).fromOrigin(this.location);
             if (location.z === 0)
                 return;
-            const ooz = 1 / location.z;
+            if (location.z > 0)
+                isNotValid = false;
+            const ooz = 1 / Math.abs(location.z);
             const pointX = windowWidth / 2 + (location.x * length) * ooz;
             const pointY = windowHeight / 2 + (location.y * length) * ooz;
             points.push([pointX, pointY]);
         }
         if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight))
+            return;
+        if (isNotValid)
             return;
         for (const point of points) {
             vertex(point[0], point[1]);
