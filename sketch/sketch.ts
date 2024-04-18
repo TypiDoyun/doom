@@ -317,13 +317,12 @@ class Camera {
 
         const vertices = shape.getVertices();
 
-        let isNotValid = true;
+        let isValid = true;
 
         for (const point of shape.getVertices()) {
             const location = shape.location.clone.add(point).fromOrigin(this.location);
-            if (location.z === 0) return;
-            if (location.z > 0) isNotValid = false;
-            const ooz = 1 / Math.abs(location.z);
+            if (location.z <= 0) isValid = false;
+            const ooz = 1 / location.z;
             const pointX = windowWidth / 2 + (location.x * length) * ooz;
             const pointY = windowHeight / 2 + (location.y * length) * ooz;
             
@@ -332,7 +331,7 @@ class Camera {
 
         
         if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight)) return;
-        if (isNotValid) return;
+        if (!isValid) return;
         for (const point of points) {
             vertex(point[0], point[1]);
         }

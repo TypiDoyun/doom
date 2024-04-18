@@ -191,15 +191,11 @@ class Vector {
     }
 }
 Vector.EPSILON = 1000000;
-var a;
-(function (a) {
-    a[a["A"] = 0] = "A";
-})(a || (a = {}));
 class Camera {
     constructor() {
         this.location = Vector.ZERO;
         this.rotation = Vector.ZERO;
-        this.fov = 90;
+        this.fov = 120;
     }
     getRotation() {
         return this.rotation.clone;
@@ -234,48 +230,19 @@ class Camera {
         const points = [];
         const luminance = Math.max(0, shape.getSurface().dot(this.location.fromOrigin(shape.location).normalized));
         const vertices = shape.getVertices();
-        let isNotValid = true;
-        for (let i = 0; i < vertices.length - 1; i++) {
-            const current = shape.location.clone.add(vertices[i]).fromOrigin(this.location);
-            const next = shape.location.clone.add(vertices[i + 1]).fromOrigin(this.location);
-            const cameraLocation = new Vector(0, 0, 0);
-            const fovLines = [
-                new Vector(-Math.sin(this.fov * Math.PI / 360), Math.cos(this.fov * Math.PI / 360), 0),
-                new Vector(Math.sin(this.fov * Math.PI / 360), Math.cos(this.fov * Math.PI / 360), 0),
-                new Vector(-windowHeight / 2, length, 0),
-                new Vector(windowHeight / 2, length, 0),
-            ];
-            const currentLocation = new Vector(current.x, current.z, 0);
-            const nextLocation = new Vector(next.x, next.z, 0);
-            const currentLocationY = new Vector(current.y, current.z, 0);
-            const nextLocationY = new Vector(next.y, next.z, 0);
-            const left = ccw(cameraLocation, fovLines[0], currentLocation) * ccw(cameraLocation, fovLines[0], nextLocation) <= 0;
-            const right = ccw(cameraLocation, fovLines[1], currentLocation) * ccw(cameraLocation, fovLines[1], nextLocation) <= 0;
-            const top = ccw(cameraLocation, fovLines[2], currentLocationY) * ccw(cameraLocation, fovLines[2], nextLocationY) <= 0;
-            const bottom = ccw(cameraLocation, fovLines[3], currentLocationY) * ccw(cameraLocation, fovLines[3], nextLocationY) <= 0;
-            if (left)
-                console.log("왼쪽 화면에 걸림");
-            if (right)
-                console.log("오른쪽 화면에 걸림");
-            if (top)
-                console.log("화면 상단에 걸림");
-            if (bottom)
-                console.log("화면 하단에 걸림");
-        }
+        let isValid = true;
         for (const point of shape.getVertices()) {
             const location = shape.location.clone.add(point).fromOrigin(this.location);
-            if (location.z === 0)
-                return;
-            if (location.z > 0)
-                isNotValid = false;
-            const ooz = 1 / Math.abs(location.z);
+            if (location.z <= 0)
+                isValid = false;
+            const ooz = 1 / location.z;
             const pointX = windowWidth / 2 + (location.x * length) * ooz;
             const pointY = windowHeight / 2 + (location.y * length) * ooz;
             points.push([pointX, pointY]);
         }
         if (points.every(point => point[0] < 0 || point[1] < 0 || point[0] >= windowWidth || point[1] >= windowHeight))
             return;
-        if (isNotValid)
+        if (!isValid)
             return;
         for (const point of points) {
             vertex(point[0], point[1]);
@@ -388,7 +355,6 @@ rectShape1.rotateY(0);
 rectShape2.location.add(new Vector(3, 0, 5));
 const cam = new Camera();
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running_");
     createCanvas(windowWidth, windowHeight);
     frameRate(framePerSecond);
 }
