@@ -371,23 +371,27 @@ function draw() {
             return speed + 3 * deltaConstant / framePerSecond;
         return speed;
     };
+    const movement = Vector.ZERO;
     if (keyIsDown(KeyCode.F)) {
         isSprint = true;
     }
     else
         isSprint = false;
     if (keyIsDown(KeyCode.W)) {
-        cam.location.add(new Vector(0, 0, getSpeed()).rotateY(cam.getRotation().y));
+        movement.add(new Vector(0, 0, 1));
     }
     if (keyIsDown(KeyCode.A)) {
-        cam.location.add(new Vector(-getSpeed(), 0, 0).rotateY(cam.getRotation().y));
+        movement.add(new Vector(-1, 0, 0));
     }
     if (keyIsDown(KeyCode.S)) {
-        cam.location.add(new Vector(0, 0, -getSpeed()).rotateY(cam.getRotation().y));
+        movement.add(new Vector(0, 0, -1));
     }
     if (keyIsDown(KeyCode.D)) {
-        cam.location.add(new Vector(getSpeed(), 0, 0).rotateY(cam.getRotation().y));
+        movement.add(new Vector(1, 0, 0));
     }
+    movement.rotateY(cam.getRotation().y);
+    if (movement.lengthSquared !== 0)
+        cam.location.add(movement.normalized.multiply(getSpeed()));
     if (keyIsDown(KeyCode.SPACE_BAR)) {
         cam.location.add(new Vector(0, -getSpeed(), 0));
     }
