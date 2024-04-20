@@ -423,6 +423,7 @@ enum KeyCode {
     A = 65,
     S = 83,
     D = 68,
+    F = 70,
     SPACE_BAR = 32,
     L_SHIFT = 16,
 
@@ -474,24 +475,34 @@ function draw() {
     const deltaConstant = deltaTime / (1000 / framePerSecond);
 
     const speed = 3 * deltaConstant / framePerSecond;
+    let isSprint = false;
+    
+    const getSpeed = () => {
+        if (isSprint) return speed + 3 * deltaConstant / framePerSecond;
+        return speed;
+    }
 
+    if (keyIsDown(KeyCode.F)) {
+        isSprint = true;
+    }
+    else isSprint = false;
     if (keyIsDown(KeyCode.W)) {
-        cam.location.add(new Vector( 0, 0, speed ).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector( 0, 0, getSpeed() ).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.A)) {
-        cam.location.add(new Vector( -speed, 0, 0 ).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector( -getSpeed(), 0, 0 ).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.S)) {
-        cam.location.add(new Vector( 0, 0, -speed ).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector( 0, 0, -getSpeed() ).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.D)) {
-        cam.location.add(new Vector( speed, 0, 0 ).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector( getSpeed(), 0, 0 ).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.SPACE_BAR)) {
-        cam.location.add(new Vector( 0, -speed, 0  ));
+        cam.location.add(new Vector( 0, -getSpeed(), 0  ));
     }
     if (keyIsDown(KeyCode.L_SHIFT)) {
-        cam.location.add(new Vector( 0, speed, 0 ));
+        cam.location.add(new Vector( 0, getSpeed(), 0 ));
     }
 
     if (keyIsDown(KeyCode.ARROW_RIGHT)) rectShape1.rotateY(1, rectShape1.location);

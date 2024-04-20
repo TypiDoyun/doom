@@ -323,6 +323,7 @@ var KeyCode;
     KeyCode[KeyCode["A"] = 65] = "A";
     KeyCode[KeyCode["S"] = 83] = "S";
     KeyCode[KeyCode["D"] = 68] = "D";
+    KeyCode[KeyCode["F"] = 70] = "F";
     KeyCode[KeyCode["SPACE_BAR"] = 32] = "SPACE_BAR";
     KeyCode[KeyCode["L_SHIFT"] = 16] = "L_SHIFT";
     KeyCode[KeyCode["ARROW_LEFT"] = 37] = "ARROW_LEFT";
@@ -364,23 +365,34 @@ function draw() {
     background("#000000");
     const deltaConstant = deltaTime / (1000 / framePerSecond);
     const speed = 3 * deltaConstant / framePerSecond;
+    let isSprint = false;
+    const getSpeed = () => {
+        if (isSprint)
+            return speed + 3 * deltaConstant / framePerSecond;
+        return speed;
+    };
+    if (keyIsDown(KeyCode.F)) {
+        isSprint = true;
+    }
+    else
+        isSprint = false;
     if (keyIsDown(KeyCode.W)) {
-        cam.location.add(new Vector(0, 0, speed).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector(0, 0, getSpeed()).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.A)) {
-        cam.location.add(new Vector(-speed, 0, 0).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector(-getSpeed(), 0, 0).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.S)) {
-        cam.location.add(new Vector(0, 0, -speed).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector(0, 0, -getSpeed()).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.D)) {
-        cam.location.add(new Vector(speed, 0, 0).rotateY(cam.getRotation().y));
+        cam.location.add(new Vector(getSpeed(), 0, 0).rotateY(cam.getRotation().y));
     }
     if (keyIsDown(KeyCode.SPACE_BAR)) {
-        cam.location.add(new Vector(0, -speed, 0));
+        cam.location.add(new Vector(0, -getSpeed(), 0));
     }
     if (keyIsDown(KeyCode.L_SHIFT)) {
-        cam.location.add(new Vector(0, speed, 0));
+        cam.location.add(new Vector(0, getSpeed(), 0));
     }
     if (keyIsDown(KeyCode.ARROW_RIGHT))
         rectShape1.rotateY(1, rectShape1.location);
